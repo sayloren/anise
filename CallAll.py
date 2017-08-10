@@ -6,7 +6,8 @@ July 23 2017
 """
 
 import argparse
-import ProcessInDataLibrary
+import ProcessData
+import FlowChart
 
 def get_args():
 	parser = argparse.ArgumentParser(description="Description")
@@ -17,9 +18,10 @@ def main():
 	# Collect arguments
 	args = get_args()
 	dFiles = [line.strip() for line in args.dfile]
-	print 'Collecting the data files from {0}'.format(dfile)
+	print 'Collecting the data files from {0}'.format(dFiles)
 	
-	ProcessInDataLibrary.main(dFiles)
+	FlowChart.main()
+	ProcessData.main(dFiles)
 
 if __name__ == "__main__":
 	main()
