@@ -37,7 +37,7 @@ def main(dFiles):
 	nonUniqueCols = collectnonUniqueColNames(catDataFrames)
 	# use column names to merge data frames, if name present in two data frames
 	mergeDataFrames = reducebyColumnName(collectDataFrames,nonUniqueCols)
-	print mergeDataFrames
+	print mergeDataFrames.head()
 
 
 if __name__ == "__main__":

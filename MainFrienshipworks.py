@@ -20,7 +20,7 @@ def main():
 	dFiles = [line.strip() for line in args.dfile]
 	print 'Collecting the data files from {0}'.format(dFiles)
 	
-	FlowChart.main()
+# 	FlowChart.main()
 	ProcessData.main(dFiles)
 
 if __name__ == "__main__":
