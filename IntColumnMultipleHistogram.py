@@ -18,7 +18,7 @@ import numpy as np
 
 def get_args():
 	parser = argparse.ArgumentParser(description="Description")
-	parser.add_argument("file", type=argparse.FileType('rU'), help='A csv file with the data you want to look at')
+	parser.add_argument("file", type=argparse.FileType('rU'),default="MatchesClosed.csv",help='A csv file with the data you want to look at')
 	parser.add_argument("-colh","--columnhistogram",type=str,default="ReasonEnded",help="Column to subset data by")
 	parser.add_argument("-v","--subsetvalue",type=int,nargs='+',default="6",help="Largest increment to subset by")
 	parser.add_argument("-s","--subsetstep",type=int,nargs='+',default="3",help="Increment to step the subset by")
@@ -66,22 +66,22 @@ def graph_histogram(collectAgg,listNames,columnHistogram,subsetFinal,numBars):
 	del listNames[-1]
 	
 	sns.set_style('ticks')
-	pp = PdfPages('Histogram.pdf')
+	pp = PdfPages('HistogramMultiple.pdf')
 	plt.figure(figsize=(5,5))
 	sns.set_palette("husl",n_colors=numBars)
 	for df,name in zip(collectAgg,listNames):
 		sns.barplot(df['count'],df[columnHistogram],linewidth=0.3)
 		plt.title('Top {0} Under {1} Months'.format(numBars,name),size=10)
-		plt.tight_layout()
 		sns.set_context(font_scale=.5)
 		sns.despine()
-		plt.savefig(pp, format='pdf')
+		plt.tight_layout()
+		plt.savefig(pp, format='pdf',bbox_inches='tight')
 	sns.barplot(finalDF['count'],finalDF[columnHistogram],linewidth=0.3)
 	plt.title('Top {0} Over {1} Months'.format(numBars,finalName),size=10)
 	sns.set_context(font_scale=.5)
 	sns.despine()
-	plt.tight_layout()
-	plt.savefig(pp, format='pdf')
+# 	plt.tight_layout()
+	plt.savefig(pp, format='pdf',bbox_inches='tight')
 	pp.close()
 
 def main():

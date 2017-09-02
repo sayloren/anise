@@ -5,6 +5,7 @@ FVtrackingIDElderID.csv
 MatchesClosed.csv
 NewMatches.csv
 VolunteerDemographics.csv
-check.txt
-flow.dot
-flow.png
+*.csv
+*.txt
+*.dot
+*.png
