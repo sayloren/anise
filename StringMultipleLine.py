@@ -32,6 +32,16 @@ def print_unique(pdFile,ColYAxis):
 	unique = pdFile[ColYAxis].unique()
 	print unique
 
+def split_compound_string(subsetCols,ColXAxis,ColYAxis):
+	toSplit = subsetCols[subsetCols[ColYAxis].str.contains(";")]
+	noSplit = subsetCols[~subsetCols[ColYAxis].str.contains(";")]
+	dfSplit = pd.DataFrame(toSplit[ColYAxis].str.split(';').tolist(), index=toSplit[ColXAxis]).stack()
+	dfSplit = dfSplit.reset_index()[[0, ColXAxis]]
+	dfSplit.columns = [ColYAxis,ColXAxis]
+	frames = [dfSplit,noSplit]
+	catSplit = pd.concat(frames,axis=0)
+	return catSplit
+
 def aggregate_by_y_col_count(subsetStr,ColXAxis,ColYAxis,strList):
 	dfList = []
 	for group in strList:
@@ -52,8 +62,8 @@ def graph_lines(dfList,ColXAxis,strList):
 	ax0 = plt.subplot(gs[0,0])
 	ax1 = plt.subplot(gs[0,1],sharey=ax0)
 	for df,name in zip(dfList,strList):
-		ax0.plot(df[0:10],label=name)#x=ColXAxis,y='count',data=df
-		ax1.plot(df[25:],label=name)
+		ax0.plot(df[0:15],label=name)#x=ColXAxis,y='count',data=df
+		ax1.plot(df[15:],label=name)
 		plt.legend(loc=0,fontsize=5,labelspacing=0.1)
 # 	plt.title('Top {0} Under {1} Months'.format(numBars,name),size=10)
 	sns.set_context(font_scale=.5)
@@ -61,6 +71,12 @@ def graph_lines(dfList,ColXAxis,strList):
 # 	plt.tight_layout()
 	plt.savefig(pp, format='pdf',bbox_inches='tight')
 	pp.close()
+
+def remove_nan_values(subsetCols,ColXAxis,ColYAxis):
+	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetCols[ColYAxis].isnull().sum(),ColYAxis)
+	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetCols[ColXAxis].isnull().sum(),ColXAxis)
+	notNA = subsetCols.dropna()
+	return notNA
 
 def main():
 	# Collect arguments
@@ -70,14 +86,28 @@ def main():
 	strList = args.ystring
 	ColYAxis = args.columnyaxis
 	
+	# Read in the file
 	pdFile = read_file_to_panda(file)
 	
-	print_unique(pdFile,ColYAxis)
-
+	# Select the columns we are looking for
 	subsetCols = pdFile[[ColXAxis,ColYAxis]]
-	subsetStr = subsetCols[subsetCols[ColYAxis].isin(strList)]
 	
+	# Remove rows with NA in the columns we are looking at
+	subsetNA = remove_nan_values(subsetCols,ColXAxis,ColYAxis)
+	
+	# Print out the unique values for Y axis column
+	print_unique(subsetNA,ColYAxis)
+	
+	# Split any ; into separate rows so as not to miss data
+	catSplit = split_compound_string(subsetNA,ColXAxis,ColYAxis)
+	
+	# Find the particular strings to look at in the Y axis
+	subsetStr = catSplit[catSplit[ColYAxis].isin(strList)]
+	
+	# Aggregate the selected strings in the Y axis by X axis
 	dfList = aggregate_by_y_col_count(subsetStr,ColXAxis,ColYAxis,strList)
+	
+	# Graph
 	graph_lines(dfList,ColXAxis,strList)
 
 if __name__ == "__main__":

@@ -34,15 +34,38 @@ def read_file_to_panda(filename):
 def subset_data_by_value(pdFile,columnSubsetValue,subsetRange):
 	listDF = []
 	listNames = []
+	previousStep = 0
 	for step in subsetRange:
-		under = pdFile.loc[pdFile[columnSubsetValue] <= step]
+		under = pdFile.loc[(pdFile[columnSubsetValue] <= step)&(pdFile[columnSubsetValue] > previousStep)]
 		listNames.append(step)
-		listDF.append(under)
+		if not under.empty:
+			listDF.append(under)
+		previousStep = step
 	final = subsetRange[-1]
 	over = pdFile.loc[pdFile[columnSubsetValue] > final]
 	listDF.append(over)
 	listNames.append(final)
 	return listDF,listNames
+
+def remove_nan_values(subsetCols,ColXAxis,ColYAxis):
+	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetCols[ColYAxis].isnull().sum(),ColYAxis)
+	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetCols[ColXAxis].isnull().sum(),ColXAxis)
+	notNA = subsetCols.dropna()
+	return notNA
+
+def print_unique(pdFile,ColYAxis):
+	unique = pdFile[ColYAxis].unique()
+	print unique
+
+def split_compound_string(subsetCols,ColXAxis,ColYAxis):
+	toSplit = subsetCols[subsetCols[ColYAxis].str.contains(";")]
+	noSplit = subsetCols[~subsetCols[ColYAxis].str.contains(";")]
+	dfSplit = pd.DataFrame(toSplit[ColYAxis].str.split(';').tolist(), index=toSplit[ColXAxis]).stack()
+	dfSplit = dfSplit.reset_index()[[0, ColXAxis]]
+	dfSplit.columns = [ColYAxis,ColXAxis]
+	frames = [dfSplit,noSplit]
+	catSplit = pd.concat(frames,axis=0)
+	return catSplit
 
 def aggregate_most_common(df,numBars,columnHistogram,ignoreCols):
 	if ignoreCols:
@@ -67,7 +90,6 @@ def graph_histogram(collectAgg,listNames,columnHistogram,subsetFinal,numBars):
 	
 	sns.set_style('ticks')
 	pp = PdfPages('HistogramMultiple.pdf')
-	plt.figure(figsize=(5,5))
 	sns.set_palette("husl",n_colors=numBars)
 	for df,name in zip(collectAgg,listNames):
 		sns.barplot(df['count'],df[columnHistogram],linewidth=0.3)
@@ -80,7 +102,6 @@ def graph_histogram(collectAgg,listNames,columnHistogram,subsetFinal,numBars):
 	plt.title('Top {0} Over {1} Months'.format(numBars,finalName),size=10)
 	sns.set_context(font_scale=.5)
 	sns.despine()
-# 	plt.tight_layout()
 	plt.savefig(pp, format='pdf',bbox_inches='tight')
 	pp.close()
 
@@ -96,14 +117,31 @@ def main():
 	numBars = args.numberbars
 	ignoreCols = args.ignoregroups
 	
+	# Read in the file
 	pdFile = read_file_to_panda(file)
-	listDF,listNames = subset_data_by_value(pdFile,columnSubsetValue,subsetRange)
+
+	# Select the columns we are looking for
+	subsetCols = pdFile[[columnSubsetValue,columnHistogram]]
 	
+	# Remove rows with NA in the columns we are looking at
+	subsetNA = remove_nan_values(subsetCols,columnSubsetValue,columnHistogram)
+	
+	# Print out the unique values for Y axis column
+	print_unique(subsetNA,columnHistogram)
+	
+	# Split any ; into separate rows so as not to miss data
+	catSplit = split_compound_string(subsetNA,columnSubsetValue,columnHistogram)
+	
+	# Subset data by ranges
+	listDF,listNames = subset_data_by_value(catSplit,columnSubsetValue,subsetRange)
+	
+	# Aggregate the selected strings in the Y axis by X axis
 	collectAgg = []
 	for df in listDF:
 		aggDF = aggregate_most_common(df,numBars,columnHistogram,ignoreCols)
 		collectAgg.append(aggDF)
 	
+	# Graph
 	graph_histogram(collectAgg,listNames,columnHistogram,subsetFinal,numBars)
 
 if __name__ == "__main__":

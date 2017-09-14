@@ -35,6 +35,26 @@ def subset_data_by_value(pdFile,columnSubsetValue,subsetFinal):
 	overVal = pdFile.loc[pdFile[columnSubsetValue] > subsetFinal]
 	return overVal,underVal
 
+def remove_nan_values(subsetCols,ColXAxis,ColYAxis):
+	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetCols[ColYAxis].isnull().sum(),ColYAxis)
+	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetCols[ColXAxis].isnull().sum(),ColXAxis)
+	notNA = subsetCols.dropna()
+	return notNA
+
+def print_unique(pdFile,ColYAxis):
+	unique = pdFile[ColYAxis].unique()
+	print unique
+
+def split_compound_string(subsetCols,ColXAxis,ColYAxis):
+	toSplit = subsetCols[subsetCols[ColYAxis].str.contains(";")]
+	noSplit = subsetCols[~subsetCols[ColYAxis].str.contains(";")]
+	dfSplit = pd.DataFrame(toSplit[ColYAxis].str.split(';').tolist(), index=toSplit[ColXAxis]).stack()
+	dfSplit = dfSplit.reset_index()[[0, ColXAxis]]
+	dfSplit.columns = [ColYAxis,ColXAxis]
+	frames = [dfSplit,noSplit]
+	catSplit = pd.concat(frames,axis=0)
+	return catSplit
+
 def aggregate_most_common(df,numBars,columnHistogram,ignoreCols):
 	if ignoreCols:
 		columnList = df[columnHistogram].unique().tolist()
@@ -82,12 +102,29 @@ def main():
 	numBars = args.numberbars
 	ignoreCols = args.ignoregroups
 	
+	# Read in the file
 	pdFile = read_file_to_panda(file)
-	overVal,underVal = subset_data_by_value(pdFile,columnSubsetValue,subsetFinal)
 	
+	# Select the columns we are looking for
+	subsetCols = pdFile[[columnSubsetValue,columnHistogram]]
+
+	# Remove rows with NA in the columns we are looking at
+	subsetNA = remove_nan_values(subsetCols,columnSubsetValue,columnHistogram)
+	
+	# Print out the unique values for Y axis column
+	print_unique(subsetNA,columnHistogram)
+	
+	# Split any ; into separate rows so as not to miss data
+	catSplit = split_compound_string(subsetNA,columnSubsetValue,columnHistogram)
+
+	# Subset data by ranges
+	overVal,underVal = subset_data_by_value(catSplit,columnSubsetValue,subsetFinal)
+	
+	# Aggregate the selected strings in the Y axis by X axis
 	overAgg = aggregate_most_common(overVal,numBars,columnHistogram,ignoreCols)
 	underAgg = aggregate_most_common(underVal,numBars,columnHistogram,ignoreCols)
 	
+	# Graph
 	graph_histogram(overAgg,underAgg,columnHistogram,subsetFinal,numBars)
 
 if __name__ == "__main__":
