@@ -32,9 +32,10 @@ def print_unique(pdFile,ColYAxis):
 	print unique
 
 def split_compound_string(subsetCols,ColXAxis,ColYAxis):
-	toSplit = subsetCols[subsetCols[ColYAxis].str.contains(";")]
-	noSplit = subsetCols[~subsetCols[ColYAxis].str.contains(";")]
-	dfSplit = pd.DataFrame(toSplit[ColYAxis].str.split(';').tolist(), index=toSplit[ColXAxis]).stack()
+	# could do column.strip() to remove first space before string
+	toSplit = subsetCols[subsetCols[ColYAxis].str.contains("; ")]
+	noSplit = subsetCols[~subsetCols[ColYAxis].str.contains("; ")]
+	dfSplit = pd.DataFrame(toSplit[ColYAxis].str.split('; ').tolist(), index=toSplit[ColXAxis]).stack()
 	dfSplit = dfSplit.reset_index()[[0, ColXAxis]]
 	dfSplit.columns = [ColYAxis,ColXAxis]
 	frames = [dfSplit,noSplit]
@@ -82,9 +83,15 @@ def main():
 	
 	# Print out the unique values for Y axis column
 	print_unique(subsetNA,ColYAxis)
+	print 'List of unique options before split on ;'
 	
 	# Split any ; into separate rows so as not to miss data
 	catSplit = split_compound_string(subsetNA,ColXAxis,ColYAxis)
+	
+	# Print out the unique values for Y axis column
+	print_unique(catSplit,ColYAxis)
+	print 'List of unique options after split on ;'
+	
 	
 	# Graph
 	graph_swarm(catSplit,ColXAxis,ColYAxis)
