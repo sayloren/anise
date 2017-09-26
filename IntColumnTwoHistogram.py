@@ -46,9 +46,9 @@ def print_unique(pdFile,ColYAxis):
 	print unique
 
 def split_compound_string(subsetCols,ColXAxis,ColYAxis):
-	toSplit = subsetCols[subsetCols[ColYAxis].str.contains(";")]
-	noSplit = subsetCols[~subsetCols[ColYAxis].str.contains(";")]
-	dfSplit = pd.DataFrame(toSplit[ColYAxis].str.split(';').tolist(), index=toSplit[ColXAxis]).stack()
+	toSplit = subsetCols[subsetCols[ColYAxis].str.contains("; ")]
+	noSplit = subsetCols[~subsetCols[ColYAxis].str.contains("; ")]
+	dfSplit = pd.DataFrame(toSplit[ColYAxis].str.split('; ').tolist(), index=toSplit[ColXAxis]).stack()
 	dfSplit = dfSplit.reset_index()[[0, ColXAxis]]
 	dfSplit.columns = [ColYAxis,ColXAxis]
 	frames = [dfSplit,noSplit]
