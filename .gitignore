@@ -10,3 +10,4 @@ VolunteerDemographics.csv
 *.dot
 *.png
 *.pdf
+*.pyc
