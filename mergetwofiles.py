@@ -39,7 +39,7 @@ def merge_dataframes_on_single_column(frameA,frameB,sharedcolumn):
 	return pdMerge
 
 def savePanda(pdDataFrame,fileName):
-	pdDataFrame.to_csv(fileName,sep='\t')
+	pdDataFrame.to_csv(fileName,sep=',',index=False)
 
 def main():
 	# Collect arguments
@@ -64,7 +64,7 @@ def main():
 	mergeDataFrames = merge_dataframes_on_single_column(pda,pdb,nonUniqueCols)
 	
 	# strip .csv
-	savePanda(mergeDataFrames,'merged_{0}_{1}.txt'.format(stripa,stripb))
+	savePanda(mergeDataFrames,'merged_{0}_{1}.csv'.format(stripa,stripb))
 
 if __name__ == "__main__":
 	main()
