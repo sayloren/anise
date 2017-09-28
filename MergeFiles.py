@@ -1,6 +1,9 @@
 """
 Script to merge two csv files
 
+To Do:
+Is perhaps a little sloppy, find way to merge list of dfs
+
 Wren Saylor
 August 22 2017
 """
@@ -8,11 +11,12 @@ August 22 2017
 import argparse
 import pandas as pd
 import collections
+import re
 
 def get_args():
 	parser = argparse.ArgumentParser(description="Description")
-	parser.add_argument("afile", type=argparse.FileType('rU'), help='Your first csv file, comma separation expected')
-	parser.add_argument("bfile", type=argparse.FileType('rU'), help='Your second csv file, comma separation expected')
+	parser.add_argument("afile", type=str, help='Your first csv file, comma separation expected')
+	parser.add_argument("bfile", type=str, help='Your second csv file, comma separation expected')
 	return parser.parse_args()
 
 def read_file_to_panda(filename):
@@ -40,24 +44,27 @@ def savePanda(pdDataFrame,fileName):
 def main():
 	# Collect arguments
 	args = get_args()
-	aFile = args.afile
-	bFile = args.bfile
-	print 'Collecting the data files from {0} and {1}'.format(aFile,bFile)
+	afile = args.afile
+	bfile = args.bfile
+	print 'Collecting the data files from {0} and {1}'.format(afile,bfile)
 	
 	# make panda data frame
-	pdA = read_file_to_panda(aFile)
-	pdB = read_file_to_panda(bFile)
+	pda = read_file_to_panda(afile)
+	pdb = read_file_to_panda(bfile)
 	
-	concatFiles = pd.concat([pdA,pdB],axis=1)
+	concatFiles = pd.concat([pda,pdb],axis=1)
 	nonUniqueCols = collect_nonunique_column_names(concatFiles)
 	print 'You have {0} shared columns with labels {1}'.format(len(nonUniqueCols),nonUniqueCols)
 	
-	print concatFiles.head()
+	# remove file extension .csv (will have to change if txt or other extension used)
+	stripa = re.sub(r'\.csv$','', args.afile)
+	stripb = re.sub(r'\.csv$','', args.bfile)
+
+	# merge df on shared columns
+	mergeDataFrames = merge_dataframes_on_single_column(pda,pdb,nonUniqueCols)
 	
-	mergeDataFrames = merge_dataframes_on_single_column(pdA,pdB,nonUniqueCols)
-	print mergeDataFrames.head()
-	
-	savePanda(mergeDataFrames,'merged.txt')
+	# strip .csv
+	savePanda(mergeDataFrames,'merged_{0}_{1}.txt'.format(stripa,stripb))
 
 if __name__ == "__main__":
 	main()
