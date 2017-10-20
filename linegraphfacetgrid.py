@@ -1,5 +1,5 @@
 """
-Script to run some descriptive statistics for given int/float columns
+Script to make a simple correlative line plot for each two int/float columns in file
 
 Wren Saylor
 September 27 2017
@@ -18,7 +18,7 @@ import numpy as np
 def get_args():
 	parser = argparse.ArgumentParser(description="Description")
 	parser.add_argument("file", type=argparse.FileType('rU'),default="MatchesClosed.csv",help='A csv file with the data you want to look at')
-	parser.add_argument("-c","--columnss",type=int,help="Columns with ints or floats to get statistics for")
+	parser.add_argument("-y","--columnony",type=int,help="Column to correlate to all other columns")
 	parser.add_argument("-s","--stringname",type=str,help="string to add to out file name to avoid overwriting files")
 	return parser.parse_args()
 
@@ -30,7 +30,7 @@ def main():
 	# Collect arguments
 	args = get_args()
 	file = args.file
-	statscolumns = args.columnss
+	ycolumn = args.columnony
 	stringname =args.stringname
 	
 	# Read in the file

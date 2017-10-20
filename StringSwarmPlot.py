@@ -31,22 +31,22 @@ def read_file_to_panda(filename):
 	dataframe = pd.read_csv(filename,sep=',')
 	return dataframe
 
-def print_unique(pdFile,ColYAxis):
-	unique = pdFile[ColYAxis].unique()
+def print_unique(pdfile,colyaxis):
+	unique = pdfile[colyaxis].unique()
 	print unique
 
-def split_compound_string(subsetCols,ColXAxis,ColYAxis):
+def split_compound_string(subsetcols,colxaxis,colyaxis):
 	# could do column.strip() to remove first space before string
-	toSplit = subsetCols[subsetCols[ColYAxis].str.contains("; ")]
-	noSplit = subsetCols[~subsetCols[ColYAxis].str.contains("; ")]
-	dfSplit = pd.DataFrame(toSplit[ColYAxis].str.split('; ').tolist(), index=toSplit[ColXAxis]).stack()
-	dfSplit = dfSplit.reset_index()[[0, ColXAxis]]
-	dfSplit.columns = [ColYAxis,ColXAxis]
-	frames = [dfSplit,noSplit]
-	catSplit = pd.concat(frames,axis=0)
-	return catSplit
+	tosplit = subsetcols[subsetcols[colyaxis].str.contains("; ")]
+	nosplit = subsetcols[~subsetcols[colyaxis].str.contains("; ")]
+	dfsplit = pd.DataFrame(tosplit[colyaxis].str.split('; ').tolist(), index=tosplit[colxaxis]).stack()
+	dfsplit = dfsplit.reset_index()[[0, colxaxis]]
+	dfsplit.columns = [colyaxis,colxaxis]
+	frames = [dfsplit,nosplit]
+	catsplit = pd.concat(frames,axis=0)
+	return catsplit
 
-def graph_swarm(catSplit,ColXAxis,ColYAxis,stringname):
+def graph_swarm(catsplit,colxaxis,colyaxis,stringname):
 	sns.set_style('ticks')
 	pp = PdfPages('SwarmPlots_{0}.pdf'.format(stringname))
 # 	plt.figure(figsize=(5,5))
@@ -55,53 +55,53 @@ def graph_swarm(catSplit,ColXAxis,ColYAxis,stringname):
 	gs = gridspec.GridSpec(1,1,height_ratios=[1])
 	gs.update(hspace=.5) # setting the space between the graphs
 	ax0 = plt.subplot(gs[0,0])
-	sns.swarmplot(x=ColXAxis,y=ColYAxis,data=catSplit,ax=ax0)
-	plt.title('{0} by {1} '.format(ColXAxis,ColYAxis),size=10)
+	sns.swarmplot(x=colxaxis,y=colyaxis,data=catsplit,ax=ax0)
+	plt.title('{0} by {1} '.format(colxaxis,colyaxis),size=10)
 	sns.set_context(font_scale=.5)
 	sns.despine()
 # 	plt.tight_layout()
 	plt.savefig(pp, format='pdf',bbox_inches='tight')
 	pp.close()
 
-def remove_nan_values(subsetCols,ColXAxis,ColYAxis):
-	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetCols[ColYAxis].isnull().sum(),ColYAxis)
-	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetCols[ColXAxis].isnull().sum(),ColXAxis)
-	notNA = subsetCols.dropna()
-	return notNA
+def remove_nan_values(subsetcols,colxaxis,colyaxis):
+	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetcols[colyaxis].isnull().sum(),colyaxis)
+	print 'There are {0} rows with NA in {1} column, which will be dropped'.format(subsetcols[colxaxis].isnull().sum(),colxaxis)
+	notna = subsetcols.dropna()
+	return notna
 
 def main():
 	# Collect arguments
 	args = get_args()
 	file = args.file
-	ColXAxis = args.columnxaxis
-	ColYAxis = args.columnyaxis
+	colxaxis = args.columnxaxis
+	colyaxis = args.columnyaxis
 	stringname =args.stringname
 	
 	# Read in the file
-	pdFile = read_file_to_panda(file)
+	pdfile = read_file_to_panda(file)
 	
 	# Select the columns we are looking for
-	subsetCols = pdFile[[ColXAxis,ColYAxis]]
+	subsetcols = pdfile[[colxaxis,colyaxis]]
 	
 	# Remove rows with NA in the columns we are looking at
-	subsetNA = remove_nan_values(subsetCols,ColXAxis,ColYAxis)
+	subsetna = remove_nan_values(subsetcols,colxaxis,colyaxis)
 	
 	# Print out the unique values for Y axis column
-	print_unique(subsetNA,ColYAxis)
+	print_unique(subsetna,colyaxis)
 	print 'List of unique options before split on ;'
 	
 	# Split any ; into separate rows so as not to miss data
-	catSplit = split_compound_string(subsetNA,ColXAxis,ColYAxis)
+	catsplit = split_compound_string(subsetNA,colxaxis,colyaxis)
 	
-# 	threshdf = (catSplit[catSplit[ColXAxis] <= 25])
+# 	threshdf = (catsplit[catsplit[colxaxis] <= 25])
 	
 	# Print out the unique values for Y axis column
-	print_unique(catSplit,ColYAxis)
+	print_unique(catsplit,colyaxis)
 	print 'List of unique options after split on ;'
 	
 	
 	# Graph
-	graph_swarm(threshdf,ColXAxis,ColYAxis,stringname)
+	graph_swarm(threshdf,colxaxis,colyaxis,stringname)
 
 if __name__ == "__main__":
 	main()
