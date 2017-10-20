@@ -3,10 +3,13 @@ Script to look at the distribution of a data set through swarm plot
 
 Wren Saylor
 September 13 2017
+
+To Do:
+Swarm for none/na/nan
+add two y columns for swarm
 """
 
 import argparse
-import FlowChart
 import pandas as pd
 import seaborn as sns
 import matplotlib as mpl
@@ -19,8 +22,9 @@ import numpy as np
 def get_args():
 	parser = argparse.ArgumentParser(description="Description")
 	parser.add_argument("file", type=argparse.FileType('rU'),default="MatchesClosed.csv",help='A csv file with the data you want to look at')
-	parser.add_argument("-colx","--columnxaxis",type=str,default="LengthofMatchMonths",help="Integer column to go along the x axis")
-	parser.add_argument("-coly","--columnyaxis",type=str,default="ReasonEnded",help="String column to graph on y axis")
+	parser.add_argument("-x","--columnxaxis",type=str,default="LengthofMatchMonths",help="Integer column to go along the x axis")
+	parser.add_argument("-y","--columnyaxis",type=str,default="ReasonEnded",help="String column to graph on y axis")
+	parser.add_argument("-s","--stringname",type=str,help="string to add to out file name to avoid overwriting files")
 	return parser.parse_args()
 
 def read_file_to_panda(filename):
@@ -42,9 +46,9 @@ def split_compound_string(subsetCols,ColXAxis,ColYAxis):
 	catSplit = pd.concat(frames,axis=0)
 	return catSplit
 
-def graph_swarm(catSplit,ColXAxis,ColYAxis):
+def graph_swarm(catSplit,ColXAxis,ColYAxis,stringname):
 	sns.set_style('ticks')
-	pp = PdfPages('SwarmPlots.pdf')
+	pp = PdfPages('SwarmPlots_{0}.pdf'.format(stringname))
 # 	plt.figure(figsize=(5,5))
 	sns.set_palette("husl")
 
@@ -71,6 +75,7 @@ def main():
 	file = args.file
 	ColXAxis = args.columnxaxis
 	ColYAxis = args.columnyaxis
+	stringname =args.stringname
 	
 	# Read in the file
 	pdFile = read_file_to_panda(file)
@@ -88,13 +93,15 @@ def main():
 	# Split any ; into separate rows so as not to miss data
 	catSplit = split_compound_string(subsetNA,ColXAxis,ColYAxis)
 	
+# 	threshdf = (catSplit[catSplit[ColXAxis] <= 25])
+	
 	# Print out the unique values for Y axis column
 	print_unique(catSplit,ColYAxis)
 	print 'List of unique options after split on ;'
 	
 	
 	# Graph
-	graph_swarm(catSplit,ColXAxis,ColYAxis)
+	graph_swarm(threshdf,ColXAxis,ColYAxis,stringname)
 
 if __name__ == "__main__":
 	main()
