@@ -18,7 +18,7 @@ import numpy as np
 def get_args():
 	parser = argparse.ArgumentParser(description="Description")
 	parser.add_argument("file", type=argparse.FileType('rU'),default="MatchesClosed.csv",help='A csv file with the data you want to look at')
-	parser.add_argument("-c","--columnss",type=int,help="Columns with ints or floats to get statistics for")
+	parser.add_argument("-c","--columnss",type=int,nargs='*',help="Columns with ints or floats to get statistics for")
 	parser.add_argument("-s","--stringname",type=str,help="string to add to out file name to avoid overwriting files")
 	return parser.parse_args()
 
@@ -35,6 +35,13 @@ def main():
 	
 	# Read in the file
 	pdfile = read_file_to_panda(file)
+
+	# Select the columns we are looking for
+	subsetcols = pdfile.iloc[statscolumns]
+
+	# number of non-na values in each column
+	# range, mean, std
+	# hist on facet grid
 
 if __name__ == "__main__":
 	main()
