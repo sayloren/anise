@@ -32,7 +32,7 @@ def descriptive_stats(df):
 
 def seperate_data_frames(df):
 	intdf = df[['mean','std','min','25%','50%','75%','max']]
-	strdf = df[['count','unique','top','freq']]
+	strdf = df[['count','unique','freq']]#'top'
 	return intdf,strdf
 
 def two_graphs(intdf,strdf,stringname):
@@ -43,32 +43,31 @@ def two_graphs(intdf,strdf,stringname):
 	
 	sns.set_style('ticks')
 	sns.set_palette("husl")
-	gs = gridspec.GridSpec(1,2,height_ratios=[1,1])
+	gs = gridspec.GridSpec(1,2)
 	gs.update(hspace=.5)
 	ax0 = plt.subplot(gs[0,0])
 	ax1 = plt.subplot(gs[0,1])
-	plt.title('{0} by {1} '.format(colxaxis,colyaxis),size=10)
 
+# number of non-na values in each column
 
 	print intdf
 	print strdf
 
-# 	if both int and str
-# 	plot two
-# 	else 
-# 	plot one
 
-# number of non-na values in each column
-
-# 	int values
-# 	sns.barplot(,ax=ax0)
-# 	str values
-# 	sns.barplot(,ax=ax1)
-
-
-	plt.tight_layout()
-	sns.despine()
-	plt.savefig(pp, format='pdf',bbox_inches='tight')
+	if intdf.isnull().values.all():
+		print 'There are no columns with int/float values'
+	else:
+		sns.barplot(data=intdf,ax=ax0)
+# 		plt.tight_layout()
+		sns.despine()
+		plt.savefig(pp,format='pdf',bbox_inches='tight')
+	if strdf.isnull().values.all():
+		print 'There are no columns with string values'
+	else:
+		sns.barplot(data=strdf,ax=ax1)
+# 		plt.tight_layout()
+		sns.despine()
+		plt.savefig(pp,format='pdf',bbox_inches='tight')
 	pp.close()
 
 def main():
