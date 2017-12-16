@@ -28,45 +28,72 @@ def read_file_to_panda(filename):
 
 def descriptive_stats(df):
 	description = df.describe(include='all')
-	print description
-	return description
+	return description.T
 
-def graph_on_facet(df,stringname):
-	pp = PdfPages('Descriptive_Stats{0}.pdf'.format(stringname))
+def seperate_data_frames(df):
+	intdf = df[['mean','std','min','25%','50%','75%','max']]
+	strdf = df[['count','unique','top','freq']]
+	return intdf,strdf
+
+def two_graphs(intdf,strdf,stringname):
+	if stringname:
+		pp = PdfPages('Descriptive_Stats{0}.pdf'.format(stringname))
+	else:
+		pp = PdfPages('Descriptive_Stats.pdf')
+	
 	sns.set_style('ticks')
 	sns.set_palette("husl")
+	gs = gridspec.GridSpec(1,2,height_ratios=[1,1])
+	gs.update(hspace=.5)
+	ax0 = plt.subplot(gs[0,0])
+	ax1 = plt.subplot(gs[0,1])
+	plt.title('{0} by {1} '.format(colxaxis,colyaxis),size=10)
 
-	s = sns.FacetGrid(df)
+
+	print intdf
+	print strdf
+
+# 	if both int and str
+# 	plot two
+# 	else 
+# 	plot one
+
+# number of non-na values in each column
+
+# 	int values
+# 	sns.barplot(,ax=ax0)
+# 	str values
+# 	sns.barplot(,ax=ax1)
 
 
-# 	plt.title('{0} by {1} '.format(colxaxis,colyaxis),size=10)
-# 	sns.set_context(font_scale=.5)
+	plt.tight_layout()
 	sns.despine()
-# 	plt.tight_layout()
 	plt.savefig(pp, format='pdf',bbox_inches='tight')
 	pp.close()
-
-
-
-
 
 def main():
 	# Collect arguments
 	args = get_args()
 	file = args.file
-	statscolumns = args.columns
 	
 	# Read in the file
 	pdfile = read_file_to_panda(file)
 
-	# Select the columns we are looking for
-	subsetcols = pdfile.iloc[:,statscolumns]
-	description = descriptive_stats(subsetcols)
-	graph_on_facet(df,args.stringname)
+	# subset columns, if argument provided
+	if args.columns:
+		subsetcols = pdfile.iloc[:,args.columns]
+	else:
+		subsetcols = pdfile
 	
-	# number of non-na values in each column
-	# range, mean, std
-	# hist on facet grid
+	# get descriptive stats
+	description = descriptive_stats(subsetcols)
+	
+	# separate the int vs str dfs
+	intdf,strdf = seperate_data_frames(description)
+	
+	# graph
+	two_graphs(intdf,strdf,args.stringname)
+
 
 if __name__ == "__main__":
 	main()
